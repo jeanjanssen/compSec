@@ -1,6 +1,6 @@
 
 import json
-
+import atexit
 import threading
 import time
 import sys
@@ -10,7 +10,8 @@ from socket import *
 
 
 HEADER = 64
-server_port = 5059
+server_port = 5046
+
 server_name = "localhost"
 ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
@@ -128,8 +129,8 @@ def log_in_attempt():
     if login_status["action"] == 'login' and login_status["status"] == "SUCCESS":
         # successfully authenticated
         print("You are logged in")
-
-
+        # register on logout cleanup
+        atexit.register(logout)
 
 
         # start interaction

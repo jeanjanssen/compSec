@@ -8,7 +8,7 @@ from typing import List, Dict
 from userhandeler import userhandeler
 
 HEADER = 64
-serverPort = 5059
+serverPort = 5046
 block_duration = 10
 
 SERVER = "localhost"
@@ -117,8 +117,6 @@ def recv_handler():
         socket_thread.daemon = False
         socket_thread.start()
 
-
-# handles all out going data that can not be handled by reciever hadnerler
 def send_handler():
     global thread_lock
     global clients
