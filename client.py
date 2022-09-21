@@ -27,8 +27,7 @@ thread_lock = threading.Condition()
 # if set true, main thread will exit at next 0.1 second
 to_exit = False
 
-# if set true, a time out message will be displayed to the terminal
-# and the program will exit
+# the program will exit
 is_timeout = False
 
 # get the username and password and login
