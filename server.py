@@ -1,43 +1,170 @@
-import socket
+
 import threading
+import time
+import json
+import signal
+from socket import *
+from typing import List, Dict
+from userhandeler import userhandeler
 
 HEADER = 64
-PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
-ADDR = (SERVER, PORT)
+serverPort = 5059
+block_duration = 10
+
+SERVER = "localhost"
+ADDR = (SERVER, serverPort)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(ADDR)
+Server__Socket = socket(AF_INET, SOCK_STREAM)
+Server__Socket.bind(ADDR)
+
+thread_lock = threading.Condition()
+
+#  clients
+clients = []
+
+# map username to connection socket
+name_to_socket: Dict = dict()
+
+# would communicate with clients after every second
+UPDATE_INTERVAL = 1
+
+# user manager manages all the user data
+user_manager = userhandeler(block_duration, timeout)
+
+def keyboard_interrupt_handler(signal, frame):
+    print("\rServer is shutdown")
+    exit(0)
+
+def on_close():
+  Server__Socket.close()
+
+def connection_handler(connection_socket, client_address):
 
 
-def handle_client(conn, addr):
-    print(f"[NEW CONNECTION] {addr} connected.")
 
-    connected = True
-    while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
-            if msg == DISCONNECT_MESSAGE:
-                connected = False
+    def real_connection_handler():
+        while True:
+            recieved_data = connection_socket.recv(1024)
+            if not recieved_data:
+                     exit(0)
 
-            print(f"[{addr}] {msg}")
-            conn.send("Message received".encode(FORMAT))
-
-    conn.close()
+            recieved_data = recieved_data.decode()
+            recieved_data = json.loads(recieved_data)
+            action = recieved_data["action"]
 
 
-def start():
-    server.listen()
-    print(f"[LISTENING] Server is listening on {SERVER}")
+            with thread_lock:
+                # debugging code, uncomment to use
+                print(client_address, ':', recieved_data)
+
+                # the recieved_data
+                server_message = dict()
+                server_message["action"] = action
+
+                # current user name
+                curr_user = user_manager.get_username(client_address)
+
+                # update the time out when user send anything to server
+                user_manager.refresh_user_timeout(curr_user)
+
+                if action == 'login':
+                    # store client information (IP and Port No) in list
+                    username = recieved_data["username"]
+                    password = recieved_data["password"]
+                    clients.append(client_address)
+                    # verify the user and reply the status
+
+                    status = user_manager.new_user(username, password)
+
+                    user_manager.set_address_username(client_address, username)
+                    server_message["status"] = status
+                    if status == 'SUCCESS':
+                        # add the socket to the name-socket map
+                        name_to_socket[username] = connection_socket
+
+                elif action == 'logout':
+                    user_manager.set_offline(user_manager.get_username(client_address))
+                    if client_address in clients:
+                        clients.remove(client_address)
+                        server_message["reply"] = "logged out"
+
+
+                else:
+                    server_message["reply"] = "Unknown action"
+                connection_socket.send(json.dumps(server_message).encode())
+                # notify the thread waiting
+                thread_lock.notify()
+
+    return real_connection_handler
+
+def recv_handler():
+
+    global thread_lock
+    global clients
+    global Server__Socket
+
     while True:
-        conn, addr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
-        print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+        # create a new connection for a new client
+        connection_socket, client_address = Server__Socket.accept()
+
+        # create a new function handler for the client
+        socket_handler = connection_handler(connection_socket, client_address)
+
+        # create a new thread for the client socket
+        socket_thread = threading.Thread(name=str(client_address), target=socket_handler)
+        socket_thread.daemon = False
+        socket_thread.start()
+
+
+# handles all out going data that can not be handled by reciever hadnerler
+def send_handler():
+    global thread_lock
+    global clients
+    global Server__Socket
+    while True:
+        # get lock
+        with thread_lock:
+            ##TODO handle outgoing (buffer incase of overflow??)
+
+            time.sleep(UPDATE_INTERVAL)
+
+sender_thread = threading.Thread(name="SendHandler", target=send_handler)
+sender_thread.daemon = True
+sender_thread.start()
+
+
+
+# we will use two sockets, one for sending and one for receiving
+Server__Socket = socket(AF_INET, SOCK_STREAM)
+Server__Socket.bind(('localhost', serverPort))
+Server__Socket.listen(1)
+
+recieved_thread = threading.Thread(name="RecvHandler", target=recv_handler)
+recieved_thread.daemon = True
+recieved_thread.start()
+
+
+
+
+
+
+# register keyboard interrupt handler
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
+
+
+
+
+# this is the main thread
+def start():
+    print(f"[LISTENING] Server is listening on {SERVER}")
+    print('Server is up.')
+    while True:
+        time.sleep(0.1)
+
+        # update any information of all user data
+        user_manager.update()
 
 
 print("[STARTING] server is starting...")
