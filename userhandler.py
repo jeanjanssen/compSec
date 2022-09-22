@@ -24,9 +24,6 @@ class userhandler:
              print(" error adding logins.txt")
              exit(1)
 
-
-
-
     def read_file(self):
         try:
             with open("logins.txt", "r") as credential_file:
@@ -39,7 +36,12 @@ class userhandler:
             print("error reading logins.txt")
             exit(1)
 
-
+    def get_user(self, client_address):
+        try:
+            return self.users_dict[self.get_username(client_address)]
+        except:
+            print("[ERROR] could not find user")
+        
 
     def new_user(self, username_input: str, password_input: str):
         if username_input not in self.users_dict:
@@ -109,7 +111,7 @@ class userhandler:
             self.blocked: bool = False
             self.consecutive_fails: int = 0
             self.blocked_since: int = 0
-            self.Balance: int = 0
+            self.balance: int = 0
 
         def getBalance(self):
             return self.balance
@@ -145,10 +147,10 @@ class userhandler:
         def refresh_user_timeout(self):
             self.inactive_since = time()
 
-        def Increasebalance(self, int):
+        def increaseBalance(self, int):
             self.balance = self.balance +int
 
-        def Decreasebalance(self, int):
+        def decreaseBalance(self, int):
             self.balance = self.balance - int
 
         def authenticate(self, password_input: str):

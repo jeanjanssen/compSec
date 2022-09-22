@@ -42,8 +42,6 @@ def on_close():
 
 def connection_handler(connection_socket, client_address):
 
-
-
     def real_connection_handler():
         while True:
             recieved_data = connection_socket.recv(1024)
@@ -94,6 +92,17 @@ def connection_handler(connection_socket, client_address):
                         clients.remove(client_address)
                         server_message["reply"] = "logged out"
 
+                elif action == 'INCREASE':
+                    user = user_manager.get_user(client_address)
+                    user.increaseBalance(recieved_data["value"])
+                    print("succes")
+                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+
+                elif action == 'DECREASE':
+                    user = user_manager.get_user(client_address)
+                    user.decreaseBalance(recieved_data["value"])
+                    print("succes")
+                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
                 else:
                     server_message["reply"] = "Unknown action"

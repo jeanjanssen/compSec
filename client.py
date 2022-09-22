@@ -91,6 +91,21 @@ def sending_handler():
         command = input("> ").strip()
         if command.startswith("logout"):
             to_exit = True
+
+        elif command.startswith("INCREASE"):
+            commandmsg = json.dumps({
+                "action": "INCREASE",
+                "value": 1
+            })
+            client__Socket.send(commandmsg.encode())
+
+        elif command.startswith("DECREASE"):
+            commandmsg = json.dumps({
+                "action": "DECREASE",
+                "value": 1
+            })
+            client__Socket.send(commandmsg.encode())
+
         #if command.startswith("INCREASE"):
 
         #if command.startswith("DECREASE"):
