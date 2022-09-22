@@ -8,7 +8,7 @@ from typing import Dict
 from userhandler import userhandler
 
 HEADER = 64
-serverPort = 5050
+serverPort = 5053
 block_duration = 10
 
 SERVER = "localhost"
@@ -89,6 +89,7 @@ def connection_handler(connection_socket, client_address):
                 elif action == 'logout':
                     user_manager.set_offline(user_manager.get_username(client_address))
                     if client_address in clients:
+                        user_manager.user_stripper(username, password)
                         clients.remove(client_address)
                         server_message["reply"] = "logged out"
 

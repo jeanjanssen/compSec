@@ -10,7 +10,7 @@ from socket import *
 
 
 HEADER = 64
-server_port = 5050
+server_port = 5053
 
 server_name = "localhost"
 ADDR = (server_name, server_port)

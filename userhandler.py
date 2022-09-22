@@ -13,6 +13,21 @@ class userhandler:
         self.time_out: int = time_out_dur
         self.read_file()
 
+    def user_stripper(self, username_input: str, password_input: str):
+        try:
+            with open('logins.txt', 'r') as file:
+                text = file.read()
+
+            # Delete text and Write
+            with open('logins.txt', 'w') as file:
+                #Delete
+                new_text = text.replace('\n'+username_input+" "+password_input, '')
+                # Write
+                file.write(new_text)
+        except:
+            print("error delete user")
+            exit(1)
+
     def add_file(self, username_input: str, password_input: str):
 
             try:
