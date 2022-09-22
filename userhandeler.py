@@ -133,7 +133,7 @@ class userhandeler:
             self.__private_port = 0
 
         def is_online(self):
-            return self.online
+            return self.set_offline()
 
         def update_time_out(self):
             # update time out status, return true if should lof out this user because of timeout
@@ -154,9 +154,9 @@ class userhandeler:
         def authenticate(self, password_input: str):
             # authenticate, return the status of the updated user
 
-            if self.online:
-                # user is already logged in
-                return "ALREADY_LOGGED_IN"
+            #if self.online:
+              # user is already logged in
+               # return "ALREADY_LOGGED_IN"
 
             if self.blocked:
                 # user is blocked
@@ -172,7 +172,7 @@ class userhandeler:
                 return "INVALID_PASSWORD"
 
             # is able to login. update status
-            self.online = True
+            self.online = False
             self.__last_login = int(time())
             self.refresh_user_timeout()
             return "SUCCESS"

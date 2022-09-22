@@ -134,8 +134,8 @@ def log_in_attempt():
 
         # start interaction
         interact()
-    elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
-        print("You have already logged in.")
+   # elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
+   #     print("You have already logged in.")
     elif login_status["action"] == 'login' and login_status["status"] == "INVALID_PASSWORD_BLOCKED":
         print("Invalid password. Your account has been blocked. Please try again later.")
     elif login_status["action"] == 'login' and login_status["status"] == "BLOCKED":
@@ -148,8 +148,8 @@ def log_in_attempt():
             "password": input("Invalid password.try again:"),
         })
         log_in_attempt()
-    elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
-        print(login_status["status"])
+  #  elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
+  #      print(login_status["status"])
     elif login_status["action"] == 'login' and login_status["status"] == "USERNAME_NOT_EXIST":
         print(login_status["status"])
     else:

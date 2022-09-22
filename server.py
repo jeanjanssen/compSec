@@ -4,7 +4,7 @@ import time
 import json
 import signal
 from socket import *
-from typing import List, Dict
+from typing import Dict
 from userhandeler import userhandeler
 
 HEADER = 64
@@ -142,9 +142,6 @@ Server__Socket.listen(1)
 recieved_thread = threading.Thread(name="RecvHandler", target=recv_handler)
 recieved_thread.daemon = True
 recieved_thread.start()
-
-
-
 
 
 
