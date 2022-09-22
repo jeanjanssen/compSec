@@ -5,7 +5,7 @@ import json
 import signal
 from socket import *
 from typing import Dict
-from userhandeler import userhandeler
+from userhandler import userhandler
 
 HEADER = 64
 serverPort = 5050
@@ -31,7 +31,7 @@ name_to_socket: Dict = dict()
 UPDATE_INTERVAL = 1
 
 # user manager manages all the user data
-user_manager = userhandeler(block_duration, timeout)
+user_manager = userhandler(block_duration, timeout)
 
 def keyboard_interrupt_handler(signal, frame):
     print("\rServer is shutdown")

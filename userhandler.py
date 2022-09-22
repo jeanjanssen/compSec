@@ -2,11 +2,11 @@ from typing import Dict
 from time import time
 
 
-class userhandeler:
+class userhandler:
 
 
     def __init__(self, block_dur: int, time_out_dur: int):
-        self.users_dict: Dict[str, userhandeler.__User] = dict()
+        self.users_dict: Dict[str, userhandler.__User] = dict()
         self.address2username_map: Dict[str, str] = dict()
         self.username2address_map: Dict[str, str] = dict()
         self.blockduration: int = block_dur
@@ -32,7 +32,7 @@ class userhandeler:
             with open("logins.txt", "r") as credential_file:
                 for credential in credential_file:
                     username, password = credential.strip().split()
-                    self.users_dict[username] = userhandeler.__User(username, password,
+                    self.users_dict[username] = userhandler.__User(username, password,
                                                                     self.blockduration,
                                                                     self.time_out)
         except:
