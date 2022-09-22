@@ -130,10 +130,10 @@ class userhandeler:
             self.online = False
             self.consecutive_fails = 0
             self.blocked_since = 0
-            self.__private_port = 0
+
 
         def is_online(self):
-            return self.set_offline()
+            return self.online
 
         def update_time_out(self):
             # update time out status, return true if should lof out this user because of timeout

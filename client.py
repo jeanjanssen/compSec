@@ -1,4 +1,4 @@
-
+import hashlib
 import json
 import atexit
 import threading
@@ -10,7 +10,7 @@ from socket import *
 
 
 HEADER = 64
-server_port = 5046
+server_port = 5050
 
 server_name = "localhost"
 ADDR = (server_name, server_port)

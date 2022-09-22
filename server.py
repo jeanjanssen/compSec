@@ -1,4 +1,4 @@
-
+import hashlib
 import threading
 import time
 import json
@@ -8,7 +8,7 @@ from typing import Dict
 from userhandeler import userhandeler
 
 HEADER = 64
-serverPort = 5046
+serverPort = 5050
 block_duration = 10
 
 SERVER = "localhost"
@@ -74,6 +74,10 @@ def connection_handler(connection_socket, client_address):
                     username = recieved_data["username"]
                     password = recieved_data["password"]
                     clients.append(client_address)
+                    #MD5 HASHING
+                    username = hashlib.md5(bytes(username, 'utf-8')).hexdigest()
+                    password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
+
                     # verify the user and reply the status
 
                     status = user_manager.new_user(username, password)

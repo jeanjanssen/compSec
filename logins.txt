@@ -1,6 +1,2 @@
-i i
-k k
-p p
-w w
-v v
-mat pat
+
+d95679752134a2d9eb61dbd7b91c4bcc d95679752134a2d9eb61dbd7b91c4bcc
