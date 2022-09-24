@@ -87,22 +87,24 @@ def connection_handler(connection_socket, client_address):
                         name_to_socket[username] = connection_socket
 
                 elif action == 'logout':
-                    user_manager.set_offline(user_manager.get_username(client_address))
                     if client_address in clients:
-                        user_manager.user_stripper(username, password)
+                        if user_manager.get_username_count(username) == 1:
+                            user_manager.set_offline(user_manager.get_username(client_address))
+                            user_manager.user_stripper(username, password)
+                        else:
+                            user_manager.decrease_user_count(username)
+
                         clients.remove(client_address)
                         server_message["reply"] = "logged out"
 
                 elif action == 'INCREASE':
                     user = user_manager.get_user(client_address)
                     user.increaseBalance(recieved_data["value"])
-                    print("succes")
                     print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
                 elif action == 'DECREASE':
                     user = user_manager.get_user(client_address)
                     user.decreaseBalance(recieved_data["value"])
-                    print("succes")
                     print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
                 else:

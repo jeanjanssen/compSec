@@ -162,7 +162,7 @@ def log_in_attempt():
         message = json.dumps({
             "action": "login",
             "username": username,
-            "password": input("Invalid password.try again:"),
+            "password": input("Invalid password. Try again: "),
         })
         log_in_attempt()
   #  elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":

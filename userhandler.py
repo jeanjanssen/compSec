@@ -9,19 +9,21 @@ class userhandler:
         self.users_dict: Dict[str, userhandler.__User] = dict()
         self.address2username_map: Dict[str, str] = dict()
         self.username2address_map: Dict[str, str] = dict()
+        self.username2count_map: Dict[str, int] = dict()
         self.blockduration: int = block_dur
         self.time_out: int = time_out_dur
         self.read_file()
 
     def user_stripper(self, username_input: str, password_input: str):
         try:
+            del self.users_dict[username_input]
             with open('logins.txt', 'r') as file:
                 text = file.read()
 
             # Delete text and Write
             with open('logins.txt', 'w') as file:
                 #Delete
-                new_text = text.replace('\n'+username_input+" "+password_input, '')
+                new_text = text.replace(username_input+" "+password_input+"\n", '')
                 # Write
                 file.write(new_text)
         except:
@@ -32,8 +34,8 @@ class userhandler:
 
             try:
                 with open("logins.txt", "a") as credential_file:
-                    new_acc =[ "" ,username_input+" "+password_input]
-                    credential_file.write("\n".join(new_acc))
+                    new_acc = username_input + " " + password_input + "\n"
+                    credential_file.write(new_acc)
                     self.read_file()
             except:
              print(" error adding logins.txt")
@@ -63,6 +65,9 @@ class userhandler:
             # username unknown
             print("Creating new user")
             self.add_file(username_input, password_input)
+            self.users_dict[username_input] = userhandler.__User(username_input, password_input,
+                                                                    self.blockduration,
+                                                                    self.time_out)
 
             return "SUCCESS"
         else :
@@ -82,6 +87,16 @@ class userhandler:
     def set_address_username(self, address: str, username: str):
         self.address2username_map[address] = username
         self.username2address_map[username] = address
+        if username in self.username2count_map:
+            self.username2count_map[username] += 1
+        else:
+            self.username2count_map[username] = 1
+
+    def get_username_count(self, username: str):
+        return self.username2count_map[username]
+
+    def decrease_user_count(self, username: str):
+        self.username2count_map[username] -= 1
 
     def get_username(self, address: str) -> str:
         if address in self.address2username_map:
@@ -103,8 +118,6 @@ class userhandler:
         # update all user's block status
         for user_credential in self.users_dict.values():
             user_credential.update()
-
-
 
     def refresh_user_timeout(self, username):
         # update a user's last active time
