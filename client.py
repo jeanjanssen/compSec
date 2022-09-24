@@ -93,16 +93,18 @@ def sending_handler():
             to_exit = True
 
         elif command.startswith("INCREASE"):
+            action, value = command.split()
             commandmsg = json.dumps({
-                "action": "INCREASE",
-                "value": 1
+                "action": action,
+                "value": int(value)
             })
             client__Socket.send(commandmsg.encode())
 
         elif command.startswith("DECREASE"):
+            action, value = command.split()
             commandmsg = json.dumps({
-                "action": "DECREASE",
-                "value": 1
+                "action": action,
+                "value": int(value)
             })
             client__Socket.send(commandmsg.encode())
 
