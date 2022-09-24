@@ -44,74 +44,89 @@ def connection_handler(connection_socket, client_address):
 
     def real_connection_handler():
         while True:
-            recieved_data = connection_socket.recv(1024)
-            if not recieved_data:
-                     exit(0)
+            try:
+                received_data = connection_socket.recv(1024)
+            except:
+                exit(0)
 
-            recieved_data = recieved_data.decode()
-            recieved_data = json.loads(recieved_data)
-            action = recieved_data["action"]
+            received_data = received_data.decode()
+            received_data = received_data.split("}")
 
+            for i in range(0, len(received_data)):
+                received_data[i] += "}"
 
-            with thread_lock:
-                # debugging code, uncomment to use
-                print(client_address, ':', recieved_data)
+            received_data = received_data[0:len(received_data)-1]
 
-                # the recieved_data
-                server_message = dict()
-                server_message["action"] = action
+            for i in range(0, len(received_data)):
+                received_data[i] = json.loads(received_data[i])
 
-                # current user name
-                curr_user = user_manager.get_username(client_address)
+            for data in received_data:
+                action = data["action"]
 
-                # update the time out when user send anything to server
-                user_manager.refresh_user_timeout(curr_user)
+                with thread_lock:
+                    # debugging code, uncomment to use
+                    print(client_address, ':', data)
 
-                if action == 'login':
-                    # store client information (IP and Port No) in list
-                    username = recieved_data["username"]
-                    password = recieved_data["password"]
-                    clients.append(client_address)
-                    #MD5 HASHING
-                    username = hashlib.md5(bytes(username, 'utf-8')).hexdigest()
-                    password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
+                    # the received_data
+                    server_message = dict()
+                    server_message["action"] = action
 
-                    # verify the user and reply the status
+                    # current user name
+                    curr_user = user_manager.get_username(client_address)
 
-                    status = user_manager.new_user(username, password)
+                    # update the time out when user send anything to server
+                    user_manager.refresh_user_timeout(curr_user)
 
-                    user_manager.set_address_username(client_address, username)
-                    server_message["status"] = status
-                    if status == 'SUCCESS':
-                        # add the socket to the name-socket map
-                        name_to_socket[username] = connection_socket
+                    if action == 'login':
+                        # store client information (IP and Port No) in list
+                        username = data["username"]
+                        password = data["password"]
+                        clients.append(client_address)
+                        #MD5 HASHING
+                        username = hashlib.md5(bytes(username, 'utf-8')).hexdigest()
+                        password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
 
-                elif action == 'logout':
-                    if user_manager.get_username_count(username) == 1:
+                        # verify the user and reply the status
+
+                        status = user_manager.new_user(username, password)
+
+                        user_manager.set_address_username(client_address, username)
+                        server_message["status"] = status
+                        if status == 'SUCCESS':
+                            # add the socket to the name-socket map
+                            name_to_socket[username] = connection_socket
+
+                    elif action == 'logout':
+                        if user_manager.get_username_count(username) == 1:
                             user_manager.set_offline(user_manager.get_username(client_address))
                             user_manager.user_stripper(username, password)
+                            user_manager.decrease_user_count(username)
+                        else:
+                            user_manager.decrease_user_count(username)
+                        
+                        if client_address in clients:
+                            clients.remove(client_address)
+                            server_message["reply"] = "logged out"
+
+                    elif action == 'INCREASE':
+                        user = user_manager.get_user(client_address)
+                        user.increaseBalance(data["value"])
+                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+
+                    elif action == 'DECREASE':
+                        user = user_manager.get_user(client_address)
+                        user.decreaseBalance(data["value"])
+                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+
                     else:
-                        user_manager.decrease_user_count(username)
+                        server_message["reply"] = "Unknown action"
                     
-                    if client_address in clients:
-                        clients.remove(client_address)
-                        server_message["reply"] = "logged out"
-
-                elif action == 'INCREASE':
-                    user = user_manager.get_user(client_address)
-                    user.increaseBalance(recieved_data["value"])
-                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-
-                elif action == 'DECREASE':
-                    user = user_manager.get_user(client_address)
-                    user.decreaseBalance(recieved_data["value"])
-                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-
-                else:
-                    server_message["reply"] = "Unknown action"
-                connection_socket.send(json.dumps(server_message).encode())
-                # notify the thread waiting
-                thread_lock.notify()
+                    try:
+                        connection_socket.send(json.dumps(server_message).encode())
+                    except:
+                        print("[ERROR] could not return message to client, has probably already disconnected.")
+                    # notify the thread waiting
+                    thread_lock.notify()
 
     return real_connection_handler
 
@@ -155,9 +170,9 @@ Server__Socket = socket(AF_INET, SOCK_STREAM)
 Server__Socket.bind(('localhost', serverPort))
 Server__Socket.listen(1)
 
-recieved_thread = threading.Thread(name="RecvHandler", target=recv_handler)
-recieved_thread.daemon = True
-recieved_thread.start()
+received_thread = threading.Thread(name="RecvHandler", target=recv_handler)
+received_thread.daemon = True
+received_thread.start()
 
 
 

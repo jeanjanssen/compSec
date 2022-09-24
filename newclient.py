@@ -8,9 +8,15 @@ import signal
 import readline
 from socket import *
 
-fname = input("Please provide the filename of the .json file for this client: ")
+f = None
+while f == None:
+    try:
+        fname = input("Please provide the filename of the .json file for this client: ")
+        f = open(fname)
+    except:
+        print("[ERROR] Could not read json file. Make sure it is valid.")
 
-f = open(fname)
+
 data = json.load(f)
 
 HEADER = 64
@@ -46,6 +52,8 @@ message = json.dumps({
 })
 
 actions = data['actions']
+
+del data
 
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
@@ -94,20 +102,35 @@ def sending_handler():
 
     for step in actions['steps']:
         if step.startswith("INCREASE"):
-            action, value = step.split()
-            commandmsg = json.dumps({
-                "action": action,
-                "value": int(value)
-            })
-            client__Socket.send(commandmsg.encode())
+            try: 
+                action, value = step.split()
+                if int(value) >= 1:
+                    commandmsg = json.dumps({
+                    "action": action,
+                    "value": int(value)
+                    })
+                    client__Socket.send(commandmsg.encode())
+                else:
+                    print("[ERROR] value must be an integer >= 1")
+            except:
+                print("[ERROR] problem reading step: \"" + step + "\"")
 
         elif step.startswith("DECREASE"):
-            action, value = step.split()
-            commandmsg = json.dumps({
-                "action": action,
-                "value": int(value)
-            })
-            client__Socket.send(commandmsg.encode())
+            try: 
+                action, value = step.split()
+                if int(value) >= 0:
+                    commandmsg = json.dumps({
+                    "action": action,
+                    "value": int(value)
+                    })
+                    client__Socket.send(commandmsg.encode())
+                else:
+                    print("[ERROR] value must be an integer >= 1")
+            except:
+                print("[ERROR] problem reading step: \"" + step + "\"")
+        
+        else:
+            print("Invalid action: \"" + step + "\"")
         time.sleep(float(delay))
 
     logout()
