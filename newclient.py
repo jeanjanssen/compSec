@@ -93,13 +93,7 @@ def sending_handler():
     delay = actions['delay']
 
     for step in actions['steps']:
-        print("[LOOP] " + step)
-        if step.startswith("logout"):
-            logout()
-            time.sleep(2)
-            to_exit = True
-
-        elif step.startswith("INCREASE"):
+        if step.startswith("INCREASE"):
             action, value = step.split()
             commandmsg = json.dumps({
                 "action": action,
@@ -116,6 +110,9 @@ def sending_handler():
             client__Socket.send(commandmsg.encode())
         time.sleep(float(delay))
 
+    logout()
+    to_exit = True
+    time.sleep(2)
 
 
 # start the interaction between client and server

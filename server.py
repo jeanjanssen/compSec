@@ -87,13 +87,13 @@ def connection_handler(connection_socket, client_address):
                         name_to_socket[username] = connection_socket
 
                 elif action == 'logout':
-                    if client_address in clients:
-                        if user_manager.get_username_count(username) == 1:
+                    if user_manager.get_username_count(username) == 1:
                             user_manager.set_offline(user_manager.get_username(client_address))
                             user_manager.user_stripper(username, password)
-                        else:
-                            user_manager.decrease_user_count(username)
-
+                    else:
+                        user_manager.decrease_user_count(username)
+                    
+                    if client_address in clients:
                         clients.remove(client_address)
                         server_message["reply"] = "logged out"
 
