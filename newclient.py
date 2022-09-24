@@ -8,11 +8,15 @@ import signal
 import readline
 from socket import *
 
+fname = input("Please provide the filename of the .json file for this client: ")
+
+f = open(fname)
+data = json.load(f)
 
 HEADER = 64
-server_port = 5053
+server_port = int(data['server']['port'])
 
-server_name = "localhost"
+server_name = data['server']['ip']
 ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
@@ -31,15 +35,17 @@ to_exit = False
 is_timeout = False
 
 # get the username and password and login
-username = input("username: ")
+username = data['id']
 # username may be overwritten
 USERNAME = username
 message = json.dumps({
     "action": "login",
     "username": username,
-    "password": input("password: "),
+    "password": data['password'],
 
 })
+
+actions = data['actions']
 
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
@@ -81,32 +87,34 @@ def reciever_handler():
 # handles all outgoing data
 def sending_handler():
     global to_exit
-    while True:
-        # handle input and send to server
-        command = input("> ").strip()
-        if command.startswith("logout"):
+    global actions
+    
+    # handle input and send to server
+    delay = actions['delay']
+
+    for step in actions['steps']:
+        print("[LOOP] " + step)
+        if step.startswith("logout"):
             logout()
+            time.sleep(2)
             to_exit = True
 
-        elif command.startswith("INCREASE"):
-            action, value = command.split()
+        elif step.startswith("INCREASE"):
+            action, value = step.split()
             commandmsg = json.dumps({
                 "action": action,
                 "value": int(value)
             })
             client__Socket.send(commandmsg.encode())
 
-        elif command.startswith("DECREASE"):
-            action, value = command.split()
+        elif step.startswith("DECREASE"):
+            action, value = step.split()
             commandmsg = json.dumps({
                 "action": action,
                 "value": int(value)
             })
             client__Socket.send(commandmsg.encode())
-
-        #if command.startswith("INCREASE"):
-
-        #if command.startswith("DECREASE"):
+        time.sleep(float(delay))
 
 
 

@@ -1,0 +1,17 @@
+{
+	"id": "huts",
+	"password": "huts1",
+	"server":
+	{
+		"ip": "localhost",
+		"port": "5053"
+	},
+	"actions": {
+		"delay": "5",
+		"steps": [
+			"INCREASE 20",
+			"DECREASE 30",
+			"logout"
+			]
+	}
+}
