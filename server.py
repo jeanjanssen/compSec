@@ -37,7 +37,7 @@ UPDATE_INTERVAL = 1
 user_manager = userhandler(block_duration, timeout)
 
 def keyboard_interrupt_handler(signal, frame):
-    print("\rServer is shutdown")
+    print("\r[SHUTTING OFF] server has shut down...")
     exit(0)
 
 def on_close():
@@ -54,7 +54,10 @@ def write_log(data, id, value):
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
     f = open('log.txt', 'a')
-    f.write(dt_string + " - " + id + " - " + data["action"] + " " + str(data["value"]) + " - VAL = " + str(value) + "\n")
+    if data["action"] == "INCREASE" or data["action"] == "DECREASE":
+        f.write(dt_string + " - " + id + " - " + data["action"] + " " + str(data["value"]) + " - VAL = " + str(value) + "\n")
+    else:
+        f.write(dt_string + " - " + id + " - " + data["action"] + " - VAL = " + value + "\n")
 
 def connection_handler(connection_socket, client_address):
 
@@ -79,8 +82,6 @@ def connection_handler(connection_socket, client_address):
                 received_data[i] = json.loads(received_data[i])
 
             for data in received_data:
-                print('HERE')
-                print(data)
                 action = data["action"]
 
                 with thread_lock:
@@ -122,6 +123,7 @@ def connection_handler(connection_socket, client_address):
                             user_manager.set_offline(user_manager.get_username(client_address))
                             user_manager.user_stripper(username, password)
                             user_manager.decrease_user_count(username)
+                            write_log(data, usernamelog, "N/A")
                         else:
                             user_manager.decrease_user_count(username)
                         
@@ -147,7 +149,7 @@ def connection_handler(connection_socket, client_address):
                     try:
                         connection_socket.send(json.dumps(server_message).encode())
                     except:
-                        print("[ERROR] could not return message to client, has probably already disconnected.")
+                        print("[ERROR] could not return message to client, client has probably already disconnected.")
                     # notify the thread waiting
                     thread_lock.notify()
 
@@ -210,7 +212,6 @@ def start():
     global logfile
     logfile = create_log()
     print(f"[LISTENING] Server is listening on {SERVER}")
-    print('Server is up.')
     while True:
         time.sleep(0.1)
 

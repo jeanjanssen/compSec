@@ -63,7 +63,6 @@ class userhandler:
     def new_user(self, username_input: str, password_input: str):
         if username_input not in self.users_dict:
             # username unknown
-            print("Creating new user")
             self.add_file(username_input, password_input)
             self.users_dict[username_input] = userhandler.__User(username_input, password_input,
                                                                     self.blockduration,
