@@ -7,12 +7,12 @@
 		"port": "5053"
 	},
 	"actions": {
-		"delay": "0.5",
+		"delay": "1",
 		"steps": [
 			"INCREASE 1",
 			"INCREASE 1",
-			"INCREASE 1",
-			"INCREASE 1"
+			"DECREASE 1",
+			"DECREASE 1"
 			]
 	}
 }

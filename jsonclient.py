@@ -53,6 +53,12 @@ message = json.dumps({
 
 actions = data['actions']
 
+try:
+    if int(actions["delay"]) < 1:
+        sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
+except:
+    sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
+
 del data
 
 def keyboard_interrupt_handler(signal, frame):
@@ -98,7 +104,7 @@ def sending_handler():
     global actions
     
     # handle input and send to server
-    delay = actions['delay']
+    delay = int(actions['delay'])
 
     for step in actions['steps']:
         if step.startswith("INCREASE"):
@@ -118,7 +124,7 @@ def sending_handler():
         elif step.startswith("DECREASE"):
             try: 
                 action, value = step.split()
-                if int(value) >= 0:
+                if int(value) >= 1:
                     commandmsg = json.dumps({
                     "action": action,
                     "value": int(value)
@@ -131,7 +137,7 @@ def sending_handler():
         
         else:
             print("Invalid action: \"" + step + "\"")
-        time.sleep(float(delay))
+        time.sleep(delay)
 
     logout()
     to_exit = True
