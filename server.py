@@ -6,6 +6,7 @@ import signal
 from socket import *
 from typing import Dict
 from userhandler import userhandler
+from datetime import datetime
 
 HEADER = 64
 serverPort = 5053
@@ -24,6 +25,8 @@ thread_lock = threading.Condition()
 #  clients
 clients = []
 
+logfile = None
+
 # map username to connection socket
 name_to_socket: Dict = dict()
 
@@ -40,9 +43,24 @@ def keyboard_interrupt_handler(signal, frame):
 def on_close():
   Server__Socket.close()
 
+def create_log():
+    try:
+        logfile = open("log.txt", "w")
+    except:
+        print("[ERROR] problem creating log file.")
+    return logfile
+
+def write_log(data, id, value):
+    now = datetime.now()
+    dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
+    f = open('log.txt', 'a')
+    f.write(dt_string + " - " + id + " - " + data["action"] + " " + str(data["value"]) + " - VAL = " + str(value) + "\n")
+
 def connection_handler(connection_socket, client_address):
 
     def real_connection_handler():
+        global logfile
+        usernamelog = None
         while True:
             try:
                 received_data = connection_socket.recv(1024)
@@ -61,6 +79,8 @@ def connection_handler(connection_socket, client_address):
                 received_data[i] = json.loads(received_data[i])
 
             for data in received_data:
+                print('HERE')
+                print(data)
                 action = data["action"]
 
                 with thread_lock:
@@ -80,6 +100,7 @@ def connection_handler(connection_socket, client_address):
                     if action == 'login':
                         # store client information (IP and Port No) in list
                         username = data["username"]
+                        usernamelog = data["username"]
                         password = data["password"]
                         clients.append(client_address)
                         #MD5 HASHING
@@ -111,11 +132,13 @@ def connection_handler(connection_socket, client_address):
                     elif action == 'INCREASE':
                         user = user_manager.get_user(client_address)
                         user.increaseBalance(data["value"])
+                        write_log(data, usernamelog, user.getBalance())
                         print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
                     elif action == 'DECREASE':
                         user = user_manager.get_user(client_address)
                         user.decreaseBalance(data["value"])
+                        write_log(data, usernamelog, user.getBalance())
                         print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
                     else:
@@ -184,6 +207,8 @@ signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 # this is the main thread
 def start():
+    global logfile
+    logfile = create_log()
     print(f"[LISTENING] Server is listening on {SERVER}")
     print('Server is up.')
     while True:
