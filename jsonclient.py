@@ -59,8 +59,6 @@ try:
 except:
     sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
 
-del data
-
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
 
@@ -103,7 +101,9 @@ def sending_handler():
     global to_exit
     global actions
     
-    # handle input and send to server
+    client__Socket.send(json.dumps(data).encode())
+
+    """ # handle input and send to server
     delay = int(actions['delay'])
 
     for step in actions['steps']:
@@ -137,9 +137,8 @@ def sending_handler():
         
         else:
             print("Invalid action: \"" + step + "\"")
-        time.sleep(delay)
+        time.sleep(delay) """
 
-    logout()
     to_exit = True
     time.sleep(2)
 
@@ -210,6 +209,6 @@ signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 if __name__ == "__main__":
     # start to verify user
-    log_in_attempt()
+    interact()
 
 

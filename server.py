@@ -54,104 +54,82 @@ def write_log(data, id, value):
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
     f = open('log.txt', 'a')
-    if data["action"] == "INCREASE" or data["action"] == "DECREASE":
-        f.write(dt_string + " - " + id + " - " + data["action"] + " " + str(data["value"]) + " - VAL = " + str(value) + "\n")
+    if data[0] == "INCREASE" or data[0] == "DECREASE":
+        f.write(dt_string + " - " + id + " - " + data[0] + " " + str(data[1]) + " - VAL = " + str(value) + "\n")
     else:
-        f.write(dt_string + " - " + id + " - " + data["action"] + " - VAL = " + value + "\n")
+        f.write(dt_string + " - " + id + " - " + data[0] + " - VAL = " + value + "\n")
 
 def connection_handler(connection_socket, client_address):
 
     def real_connection_handler():
         global logfile
-        usernamelog = None
-        while True:
-            try:
-                received_data = connection_socket.recv(1024)
-            except:
-                exit(0)
+        try:
+            received_data = connection_socket.recv(1024)
+        except:
+            exit(0)
 
-            received_data = received_data.decode()
-            received_data = received_data.split("}")
+        received_data = received_data.decode()
+        received_data = json.loads(received_data)
+        print(received_data)
+        print(type(received_data))
+        print(received_data.keys())
 
-            for i in range(0, len(received_data)):
-                received_data[i] += "}"
+        id = received_data['id']
+        password = received_data["password"]
+        actions = received_data["actions"]["steps"]
+        delay = int(received_data["actions"]["delay"])
+        time.sleep(delay)
 
-            received_data = received_data[0:len(received_data)-1]
+        with thread_lock:
+            # the received_data
+            server_message = dict()
+            server_message["action"] = "TEST"
 
-            for i in range(0, len(received_data)):
-                received_data[i] = json.loads(received_data[i])
+            # current user name
+            curr_user = user_manager.get_username(client_address)
 
-            for data in received_data:
-                action = data["action"]
+            clients.append(client_address)
+            hashed_id = hashlib.md5(bytes(id, 'utf-8')).hexdigest()
+            hashed_password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
 
-                with thread_lock:
-                    # debugging code, uncomment to use
-                    print(client_address, ':', data)
+            status = user_manager.new_user(hashed_id, hashed_password)
+            user_manager.set_address_username(client_address, hashed_id)
+            server_message["status"] = status
+            if status == 'SUCCES':
+                name_to_socket[hashed_id] = connection_socket
 
-                    # the received_data
-                    server_message = dict()
-                    server_message["action"] = action
+            for action in actions:
+                action, value = action.split()
+                value = int(value)
+                print(action, value)
+                if action == 'INCREASE':
+                    user = user_manager.get_user(client_address)
+                    print(user_manager.get_user(client_address))
+                    user.increaseBalance(value)
+                    write_log([action, value], id, user.getBalance())
+                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
-                    # current user name
-                    curr_user = user_manager.get_username(client_address)
-
-                    # update the time out when user send anything to server
-                    user_manager.refresh_user_timeout(curr_user)
-
-                    if action == 'login':
-                        # store client information (IP and Port No) in list
-                        username = data["username"]
-                        usernamelog = data["username"]
-                        password = data["password"]
-                        clients.append(client_address)
-                        #MD5 HASHING
-                        username = hashlib.md5(bytes(username, 'utf-8')).hexdigest()
-                        password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
-
-                        # verify the user and reply the status
-
-                        status = user_manager.new_user(username, password)
-
-                        user_manager.set_address_username(client_address, username)
-                        server_message["status"] = status
-                        if status == 'SUCCESS':
-                            # add the socket to the name-socket map
-                            name_to_socket[username] = connection_socket
-
-                    elif action == 'logout':
-                        if user_manager.get_username_count(username) == 1:
-                            user_manager.set_offline(user_manager.get_username(client_address))
-                            user_manager.user_stripper(username, password)
-                            user_manager.decrease_user_count(username)
-                            write_log(data, usernamelog, "N/A")
-                        else:
-                            user_manager.decrease_user_count(username)
-                        
-                        if client_address in clients:
-                            clients.remove(client_address)
-                            server_message["reply"] = "logged out"
-
-                    elif action == 'INCREASE':
-                        user = user_manager.get_user(client_address)
-                        user.increaseBalance(data["value"])
-                        write_log(data, usernamelog, user.getBalance())
-                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-
-                    elif action == 'DECREASE':
-                        user = user_manager.get_user(client_address)
-                        user.decreaseBalance(data["value"])
-                        write_log(data, usernamelog, user.getBalance())
-                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-
-                    else:
-                        server_message["reply"] = "Unknown action"
+                elif action == 'DECREASE':
+                    user = user_manager.get_user(client_address)
+                    user.decreaseBalance(value)
+                    write_log([action, value], id, user.getBalance())
+                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
                     
-                    try:
-                        connection_socket.send(json.dumps(server_message).encode())
-                    except:
-                        print("[ERROR] could not return message to client, client has probably already disconnected.")
-                    # notify the thread waiting
-                    thread_lock.notify()
+                time.sleep(delay)
+            
+            if user_manager.get_username_count(hashed_id) == 1:
+                    user_manager.set_offline(user_manager.get_username(client_address))
+                    user_manager.user_stripper(hashed_id, password)
+                    user_manager.decrease_user_count(hashed_id)
+                    write_log(["LOGOUT"], id, "N/A")
+            else:
+                user_manager.decrease_user_count(hashed_id)
+            
+            if client_address in clients:
+                clients.remove(client_address)
+                server_message["reply"] = "logged out"
+            # notify the thread waiting
+            thread_lock.notify()
 
     return real_connection_handler
 
@@ -164,6 +142,7 @@ def recv_handler():
     while True:
         # create a new connection for a new client
         connection_socket, client_address = Server__Socket.accept()
+        print(client_address)
 
         # create a new function handler for the client
         socket_handler = connection_handler(connection_socket, client_address)

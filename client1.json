@@ -1,6 +1,6 @@
 {
-	"id": "huts",
-	"password": "huts1",
+	"id": "user",
+	"password": "password123",
 	"server":
 	{
 		"ip": "localhost",
@@ -11,7 +11,6 @@
 		"steps": [
 			"INCREASE 1",
 			"INCREASE 1",
-			"DECREASE 1",
 			"DECREASE 1"
 			]
 	}

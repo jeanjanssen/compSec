@@ -118,11 +118,6 @@ class userhandler:
         for user_credential in self.users_dict.values():
             user_credential.update()
 
-    def refresh_user_timeout(self, username):
-        # update a user's last active time
-        if username in self.users_dict:
-            self.users_dict[username].refresh_user_timeout()
-
     class __User:
 
 
@@ -163,16 +158,6 @@ class userhandler:
 
         def is_online(self):
             return self.online
-
-        def update_time_out(self):
-            # update time out status, return true if should lof out this user because of timeout
-            if self.is_online() and self.inactive_since + self.timeout < time():
-                self.set_offline()
-                return True
-            return False
-
-        def refresh_user_timeout(self):
-            self.inactive_since = time()
 
         def increaseBalance(self, int):
             self.balance = self.balance +int
