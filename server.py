@@ -98,38 +98,40 @@ def connection_handler(connection_socket, client_address):
             if status == 'SUCCES':
                 name_to_socket[hashed_id] = connection_socket
 
-            for action in actions:
-                action, value = action.split()
-                value = int(value)
-                print(action, value)
-                if action == 'INCREASE':
-                    user = user_manager.get_user(client_address)
-                    print(user_manager.get_user(client_address))
-                    user.increaseBalance(value)
-                    write_log([action, value], id, user.getBalance())
-                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+            with thread_lock:
+                for action in actions:
+                    action, value = action.split()
+                    value = int(value)
+                    print(action, value)
+                    if action == 'INCREASE':
+                        user = user_manager.get_user(client_address)
+                        print(user_manager.get_user(client_address))
+                        user.increaseBalance(value)
+                        write_log([action, value], id, user.getBalance())
+                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
-                elif action == 'DECREASE':
-                    user = user_manager.get_user(client_address)
-                    user.decreaseBalance(value)
-                    write_log([action, value], id, user.getBalance())
-                    print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-                    
-                time.sleep(delay)
-            
-            if user_manager.get_username_count(hashed_id) == 1:
-                    user_manager.set_offline(user_manager.get_username(client_address))
-                    user_manager.user_stripper(hashed_id, password)
+                    elif action == 'DECREASE':
+                        user = user_manager.get_user(client_address)
+                        user.decreaseBalance(value)
+                        write_log([action, value], id, user.getBalance())
+                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+                        
+                    time.sleep(delay)
+                    # notify the thread waiting
+                    thread_lock.notify()
+                
+                if user_manager.get_username_count(hashed_id) == 1:
+                        user_manager.set_offline(user_manager.get_username(client_address))
+                        user_manager.user_stripper(hashed_id, password)
+                        user_manager.decrease_user_count(hashed_id)
+                        write_log(["LOGOUT"], id, "N/A")
+                else:
                     user_manager.decrease_user_count(hashed_id)
-                    write_log(["LOGOUT"], id, "N/A")
-            else:
-                user_manager.decrease_user_count(hashed_id)
-            
-            if client_address in clients:
-                clients.remove(client_address)
-                server_message["reply"] = "logged out"
-            # notify the thread waiting
-            thread_lock.notify()
+                
+                if client_address in clients:
+                    clients.remove(client_address)
+                    server_message["reply"] = "logged out"
+                thread_lock.notify()
 
     return real_connection_handler
 

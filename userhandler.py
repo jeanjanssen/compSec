@@ -188,5 +188,4 @@ class userhandler:
             # is able to login. update status
             self.online = False
             self.__last_login = int(time())
-            self.refresh_user_timeout()
             return "SUCCESS"
