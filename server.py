@@ -80,58 +80,53 @@ def connection_handler(connection_socket, client_address):
         delay = int(received_data["actions"]["delay"])
         time.sleep(delay)
 
-        with thread_lock:
-            # the received_data
-            server_message = dict()
-            server_message["action"] = "TEST"
+        # the received_data
+        server_message = dict()
+        server_message["action"] = "TEST"
 
-            # current user name
-            curr_user = user_manager.get_username(client_address)
+        # current user name
+        curr_user = user_manager.get_username(client_address)
 
-            clients.append(client_address)
-            hashed_id = hashlib.md5(bytes(id, 'utf-8')).hexdigest()
-            hashed_password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
+        clients.append(client_address)
+        hashed_id = hashlib.md5(bytes(id, 'utf-8')).hexdigest()
+        hashed_password = hashlib.md5(bytes(password, 'utf-8')).hexdigest()
 
-            status = user_manager.new_user(hashed_id, hashed_password)
-            user_manager.set_address_username(client_address, hashed_id)
-            server_message["status"] = status
-            if status == 'SUCCES':
-                name_to_socket[hashed_id] = connection_socket
+        status = user_manager.new_user(hashed_id, hashed_password)
+        user_manager.set_address_username(client_address, hashed_id)
+        server_message["status"] = status
+        if status == 'SUCCES':
+            name_to_socket[hashed_id] = connection_socket
+        
+        for action in actions:
+            action, value = action.split()
+            value = int(value)
+            print(action, value)
+            if action == 'INCREASE':
+                user = user_manager.get_user(client_address)
+                print(user_manager.get_user(client_address))
+                user.increaseBalance(value)
+                write_log([action, value], id, user.getBalance())
+                print("[UPDATE] user balance changed to: " + str(user.getBalance()))
 
-            with thread_lock:
-                for action in actions:
-                    action, value = action.split()
-                    value = int(value)
-                    print(action, value)
-                    if action == 'INCREASE':
-                        user = user_manager.get_user(client_address)
-                        print(user_manager.get_user(client_address))
-                        user.increaseBalance(value)
-                        write_log([action, value], id, user.getBalance())
-                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-
-                    elif action == 'DECREASE':
-                        user = user_manager.get_user(client_address)
-                        user.decreaseBalance(value)
-                        write_log([action, value], id, user.getBalance())
-                        print("[UPDATE] user balance changed to: " + str(user.getBalance()))
-                        
-                    time.sleep(delay)
-                    # notify the thread waiting
-                    thread_lock.notify()
+            elif action == 'DECREASE':
+                user = user_manager.get_user(client_address)
+                user.decreaseBalance(value)
+                write_log([action, value], id, user.getBalance())
+                print("[UPDATE] user balance changed to: " + str(user.getBalance()))
                 
-                if user_manager.get_username_count(hashed_id) == 1:
-                        user_manager.set_offline(user_manager.get_username(client_address))
-                        user_manager.user_stripper(hashed_id, password)
-                        user_manager.decrease_user_count(hashed_id)
-                        write_log(["LOGOUT"], id, "N/A")
-                else:
-                    user_manager.decrease_user_count(hashed_id)
-                
-                if client_address in clients:
-                    clients.remove(client_address)
-                    server_message["reply"] = "logged out"
-                thread_lock.notify()
+            time.sleep(delay)
+        
+        if user_manager.get_username_count(hashed_id) == 1:
+                user_manager.set_offline(user_manager.get_username(client_address))
+                user_manager.user_stripper(hashed_id, password)
+                user_manager.decrease_user_count(hashed_id)
+                write_log(["LOGOUT"], id, "N/A")
+        else:
+            user_manager.decrease_user_count(hashed_id)
+        
+        if client_address in clients:
+            clients.remove(client_address)
+            server_message["reply"] = "logged out"
 
     return real_connection_handler
 
