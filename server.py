@@ -70,15 +70,11 @@ def connection_handler(connection_socket, client_address):
 
         received_data = received_data.decode()
         received_data = json.loads(received_data)
-        print(received_data)
-        print(type(received_data))
-        print(received_data.keys())
 
         id = received_data['id']
         password = received_data["password"]
         actions = received_data["actions"]["steps"]
         delay = int(received_data["actions"]["delay"])
-        time.sleep(delay)
 
         # the received_data
         server_message = dict()
@@ -100,10 +96,8 @@ def connection_handler(connection_socket, client_address):
         for action in actions:
             action, value = action.split()
             value = int(value)
-            print(action, value)
             if action == 'INCREASE':
                 user = user_manager.get_user(client_address)
-                print(user_manager.get_user(client_address))
                 user.increaseBalance(value)
                 write_log([action, value], id, user.getBalance())
                 print("[UPDATE] user balance changed to: " + str(user.getBalance()))
@@ -118,7 +112,7 @@ def connection_handler(connection_socket, client_address):
         
         if user_manager.get_username_count(hashed_id) == 1:
                 user_manager.set_offline(user_manager.get_username(client_address))
-                user_manager.user_stripper(hashed_id, password)
+                user_manager.user_stripper(hashed_id, hashed_password)
                 user_manager.decrease_user_count(hashed_id)
                 write_log(["LOGOUT"], id, "N/A")
         else:
@@ -139,7 +133,6 @@ def recv_handler():
     while True:
         # create a new connection for a new client
         connection_socket, client_address = Server__Socket.accept()
-        print(client_address)
 
         # create a new function handler for the client
         socket_handler = connection_handler(connection_socket, client_address)

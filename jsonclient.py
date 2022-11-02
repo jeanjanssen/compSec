@@ -103,42 +103,6 @@ def sending_handler():
     
     client__Socket.send(json.dumps(data).encode())
 
-    """ # handle input and send to server
-    delay = int(actions['delay'])
-
-    for step in actions['steps']:
-        if step.startswith("INCREASE"):
-            try: 
-                action, value = step.split()
-                if int(value) >= 1:
-                    commandmsg = json.dumps({
-                    "action": action,
-                    "value": int(value)
-                    })
-                    client__Socket.send(commandmsg.encode())
-                else:
-                    print("[ERROR] value must be an integer >= 1")
-            except:
-                print("[ERROR] problem reading step: \"" + step + "\"")
-
-        elif step.startswith("DECREASE"):
-            try: 
-                action, value = step.split()
-                if int(value) >= 1:
-                    commandmsg = json.dumps({
-                    "action": action,
-                    "value": int(value)
-                    })
-                    client__Socket.send(commandmsg.encode())
-                else:
-                    print("[ERROR] value must be an integer >= 1")
-            except:
-                print("[ERROR] problem reading step: \"" + step + "\"")
-        
-        else:
-            print("Invalid action: \"" + step + "\"")
-        time.sleep(delay) """
-
     to_exit = True
     time.sleep(2)
 
@@ -160,48 +124,6 @@ def interact():
         # when set true, exit the main thread
         if to_exit:
             exit(0)
-
-
-# log in then start interaction if successfully authenticated
-def log_in_attempt():
-    global message
-    client__Socket.send(message.encode())
-
-    # wait for the reply from the server
-    login_status = client__Socket.recv(1024)
-    login_status = json.loads(login_status.decode())
-
-    if login_status["action"] == 'login' and login_status["status"] == "SUCCESS":
-        # successfully authenticated
-        print("You are logged in")
-        # register on logout cleanup
-        atexit.register(logout)
-
-
-        # start interaction
-        interact()
-   # elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
-   #     print("You have already logged in.")
-    elif login_status["action"] == 'login' and login_status["status"] == "INVALID_PASSWORD_BLOCKED":
-        print("Invalid password. Your account has been blocked. Please try again later.")
-    elif login_status["action"] == 'login' and login_status["status"] == "BLOCKED":
-        print("Due to multiple failed log in attempts , you have been blocked.")
-    elif login_status["action"] == 'login' and login_status["status"] == "INVALID_PASSWORD":
-        # invalid password, try again
-        message = json.dumps({
-            "action": "login",
-            "username": username,
-            "password": input("Invalid password. Try again: "),
-        })
-        log_in_attempt()
-  #  elif login_status["action"] == 'login' and login_status["status"] == "ALREADY_LOGGED_IN":
-  #      print(login_status["status"])
-    elif login_status["action"] == 'login' and login_status["status"] == "USERNAME_NOT_EXIST":
-        print(login_status["status"])
-    else:
-        # things unexpected
-        print(" unexpected message")
-        exit(1)
 
 
 # register keyboard interrupt handler

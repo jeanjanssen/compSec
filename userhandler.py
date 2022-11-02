@@ -61,7 +61,9 @@ class userhandler:
         
 
     def new_user(self, username_input: str, password_input: str):
+        print("[LOGGING IN USER]")
         if username_input not in self.users_dict:
+            print("[CREATING NEW USER]")
             # username unknown
             self.add_file(username_input, password_input)
             self.users_dict[username_input] = userhandler.__User(username_input, password_input,
@@ -69,8 +71,9 @@ class userhandler:
                                                                     self.time_out)
 
             return "SUCCESS"
-        else :
-           status = self.verify(username_input, password_input)
+        else:
+            print("[VERIFYING THROUGH EXISTING USER]")
+            status = self.verify(username_input, password_input)
         return status
 
 
