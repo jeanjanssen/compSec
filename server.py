@@ -36,6 +36,24 @@ UPDATE_INTERVAL = 1
 # user manager manages all the user data
 user_manager = userhandler(block_duration, timeout)
 
+# TODO Generate keys (code found online, but could be shortened as we probably do not need to store the keys)
+# TODO when connection is established, send public key and receive client's private key
+'''
+def generateKeys():
+    (publicKey, privateKey) = rsa.newkeys(1024)
+    with open('keys/publcKey.pem', 'wb') as p:
+        p.write(publicKey.save_pkcs1('PEM'))
+     with open('keys/privateKey.pem', 'wb') as p:
+        p.write(privateKey.save_pkcs1('PEM'))
+
+def loadKeys():
+    with open('keys/publicKey.pem', 'rb') as p:
+        publicKey = rsa.PublicKey.load_pkcs1(p.read())
+    with open('keys/privateKey.pem', 'rb') as p:
+        privateKey = rsa.PrivateKey.load_pkcs1(p.read())
+    return privateKey, publicKey
+'''
+
 def keyboard_interrupt_handler(signal, frame):
     print("\r[SHUTTING OFF] server has shut down...")
     exit(0)
@@ -68,6 +86,17 @@ def connection_handler(connection_socket, client_address):
         except:
             exit(0)
 
+        #TODO add decryption and verification
+        # decryption
+        #try:
+        #    return rsa.decrypt(ciphertext, key).decode('ascii')
+        #except:
+        #    return False
+        # verification
+        #try:
+        #    return rsa.verify(message.encode('ascii'), signature, key, ) == 'SHA-1'
+        #except:
+        #    return False
         received_data = received_data.decode()
         received_data = json.loads(received_data)
 

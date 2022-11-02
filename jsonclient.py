@@ -31,6 +31,25 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 client__Socket = socket(AF_INET, SOCK_STREAM)
 client__Socket.connect((server_name, server_port))
 
+# TODO Generate keys (code found online, but could be shortened as we probably do not need to store the keys)
+# TODO when connection is established, send public key and receive servers private key
+'''
+def generateKeys():
+    (publicKey, privateKey) = rsa.newkeys(1024)
+    with open('keys/publcKey.pem', 'wb') as p:
+        p.write(publicKey.save_pkcs1('PEM'))
+     with open('keys/privateKey.pem', 'wb') as p:
+        p.write(privateKey.save_pkcs1('PEM'))
+
+def loadKeys():
+    with open('keys/publicKey.pem', 'rb') as p:
+        publicKey = rsa.PublicKey.load_pkcs1(p.read())
+    with open('keys/privateKey.pem', 'rb') as p:
+        privateKey = rsa.PrivateKey.load_pkcs1(p.read())
+    return privateKey, publicKey
+'''
+
+
 # get the thread
 thread_lock = threading.Condition()
 
@@ -68,6 +87,7 @@ def logout():
         print("\rYou are timed out.")
     else:
         print("\rYou are logged out.")
+        # TODO add encryption and signing
         client__Socket.send(json.dumps({
             "action": "logout"
         }).encode())
@@ -100,7 +120,12 @@ def reciever_handler():
 def sending_handler():
     global to_exit
     global actions
-    
+    # TODO add encryption and signing
+    # encrypting using servers public key
+    # encrypted_message = rsa.encrypt(message.encode('ascii'), key)
+    # signing using own private key
+    # signature = rsa.sign(message.encode('ascii'), key, 'SHA-1')
+
     client__Socket.send(json.dumps(data).encode())
 
     to_exit = True
