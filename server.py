@@ -3,6 +3,7 @@ import threading
 import time
 import json
 import signal
+import rsa
 from socket import *
 from typing import Dict
 from userhandler import userhandler
@@ -70,6 +71,20 @@ def connection_handler(connection_socket, client_address):
             except:
                 exit(0)
 
+            # TODO add decryption
+            '''
+            try:
+                return rsa.decrypt(ciphertext, key).decode('ascii')
+            except:
+                return False
+            '''
+            # TODO add verification
+            '''
+            try:
+                return rsa.verify(message.encode('ascii'), signature, key, ) == 'SHA-1'
+            except:
+                return False
+            '''
             received_data = received_data.decode()
             received_data = received_data.split("}")
 
@@ -167,6 +182,31 @@ def recv_handler():
 
         # create a new function handler for the client
         socket_handler = connection_handler(connection_socket, client_address)
+
+        # TODO Receive public key client
+        # TODO Generate connection-specific key and send to client
+        # The code in example found online, this can all be shortened as we probably do not need to store the keys
+        '''
+        def generateKeys():
+            (publicKey, privateKey) = rsa.newkeys(1024)
+            with open('keys/publcKey.pem', 'wb') as p:
+                p.write(publicKey.save_pkcs1('PEM'))
+            with open('keys/privateKey.pem', 'wb') as p:
+               p.write(privateKey.save_pkcs1('PEM'))
+        '''
+        '''
+        def loadKeys():
+            with open('keys/publicKey.pem', 'rb') as p:
+               publicKey = rsa.PublicKey.load_pkcs1(p.read())
+           with open('keys/privateKey.pem', 'rb') as p:
+              privateKey = rsa.PrivateKey.load_pkcs1(p.read())
+           return privateKey, publicKey
+        '''
+        '''
+        generateKeys()
+        privateKey, publicKey =load_keys()
+        '''
+        # Send the public key to client
 
         # create a new thread for the client socket
         socket_thread = threading.Thread(name=str(client_address), target=socket_handler)

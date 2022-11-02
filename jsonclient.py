@@ -6,6 +6,7 @@ import time
 import sys
 import signal
 import readline
+import rsa
 from socket import *
 
 f = None
@@ -27,6 +28,8 @@ ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
+# TODO generate keys for signing messages and receive PublicKey server
+# TODO Immediately send own public key for signing messages
 # connect to the server
 client__Socket = socket(AF_INET, SOCK_STREAM)
 client__Socket.connect((server_name, server_port))
@@ -129,6 +132,12 @@ def sending_handler():
                     "action": action,
                     "value": int(value)
                     })
+
+                    # TODO Add encryption using server publicKey
+                    # encrypt_message rsa.encrypt(message.encode('ascii'), key)
+                    # TODO Add signature using own privateKey
+                    # signature = sign(message, privateKey)
+                    # TODO Send both encrypted message and signature
                     client__Socket.send(commandmsg.encode())
                 else:
                     print("[ERROR] value must be an integer >= 1")
@@ -166,6 +175,11 @@ def interact():
 # log in then start interaction if successfully authenticated
 def log_in_attempt():
     global message
+    # TODO Add encryption
+    # encrypt_message rsa.encrypt(message.encode('ascii'), key)
+    # TODO Add signature
+    # signature = sign(message, privateKey)
+    # TODO Send both encrypted message and signature
     client__Socket.send(message.encode())
 
     # wait for the reply from the server
