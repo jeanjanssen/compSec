@@ -186,27 +186,26 @@ def recv_handler():
         # TODO Receive public key client
         # TODO Generate connection-specific key and send to client
         # The code in example found online, this can all be shortened as we probably do not need to store the keys
-        '''
-        def generateKeys():
-            (publicKey, privateKey) = rsa.newkeys(1024)
-            with open('keys/publcKey.pem', 'wb') as p:
-                p.write(publicKey.save_pkcs1('PEM'))
-            with open('keys/privateKey.pem', 'wb') as p:
-               p.write(privateKey.save_pkcs1('PEM'))
-        '''
-        '''
-        def loadKeys():
-            with open('keys/publicKey.pem', 'rb') as p:
-               publicKey = rsa.PublicKey.load_pkcs1(p.read())
-           with open('keys/privateKey.pem', 'rb') as p:
-              privateKey = rsa.PrivateKey.load_pkcs1(p.read())
-           return privateKey, publicKey
-        '''
-        '''
-        generateKeys()
-        privateKey, publicKey =load_keys()
-        '''
-        # Send the public key to client
+
+        def generate_keys():
+            public_key, private_key = rsa.newkeys(1024)
+            with open('public_key.pem', 'wb') as p:
+                p.write(public_key.save_pkcs1('PEM'))
+            with open('private_key.pem', 'wb') as p:
+                p.write(private_key.save_pkcs1('PEM'))
+
+        def load_keys():
+            with open('public_key.pem', 'rb') as p:
+                public_key = rsa.PublicKey.load_pkcs1(p.read())
+            with open('private_key.pem', 'rb') as p:
+                private_key = rsa.PrivateKey.load_pkcs1(p.read())
+            return public_key, private_key
+
+        def sendKeys():
+            generate_keys()
+            private_key, public_key = load_keys()
+            Server__Socket.send(public_key.exportKey(format='PEM', passphrase=None, pkcs=1))
+
 
         # create a new thread for the client socket
         socket_thread = threading.Thread(name=str(client_address), target=socket_handler)

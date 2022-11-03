@@ -28,11 +28,15 @@ ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
-# TODO generate keys for signing messages and receive PublicKey server
+
 # TODO Immediately send own public key for signing messages
 # connect to the server
 client__Socket = socket(AF_INET, SOCK_STREAM)
 client__Socket.connect((server_name, server_port))
+
+# TODO generate keys for signing messages and receive PublicKey server
+# Here public key should be received
+pub_key = rsa.importKey(client__Socket.recv(256), passphrase=None)
 
 # get the thread
 thread_lock = threading.Condition()
