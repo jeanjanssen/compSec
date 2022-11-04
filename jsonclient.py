@@ -7,6 +7,8 @@ import sys
 import signal
 import readline
 from socket import *
+import rsa
+import random
 
 f = None
 while f == None:
@@ -15,7 +17,6 @@ while f == None:
         f = open(fname)
     except:
         print("[ERROR] Could not read json file. Make sure it is valid.")
-
 
 data = json.load(f)
 
@@ -31,8 +32,17 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 client__Socket = socket(AF_INET, SOCK_STREAM)
 client__Socket.connect((server_name, server_port))
 
+
 # TODO Generate keys (code found online, but could be shortened as we probably do not need to store the keys)
 # TODO when connection is established, send public key and receive servers private key
+random_generator = random.new().read
+key = rsa.generate(1024, random_generator)
+public = key.publickey().exportKey()
+private = key.exportKey()
+
+# getpbk = server.recv(2048)
+server_public_key = rsa.importKey()
+
 '''
 def generateKeys():
     (publicKey, privateKey) = rsa.newkeys(1024)
@@ -48,7 +58,6 @@ def loadKeys():
         privateKey = rsa.PrivateKey.load_pkcs1(p.read())
     return privateKey, publicKey
 '''
-
 
 # get the thread
 thread_lock = threading.Condition()
@@ -78,8 +87,10 @@ try:
 except:
     sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
 
+
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
+
 
 # logout handler
 def logout():
@@ -101,6 +112,7 @@ def safe_printer(*args):
     sys.stdout.write('> ' + readline.get_line_buffer())
     sys.stdout.flush()
 
+
 # handlesincoming
 def reciever_handler():
     global to_exit, is_timeout
@@ -121,10 +133,10 @@ def sending_handler():
     global to_exit
     global actions
     # TODO add encryption and signing
+    encrypt = rsa.encrypt(message.encode('ascii'), public)
     # encrypting using servers public key
-    # encrypted_message = rsa.encrypt(message.encode('ascii'), key)
     # signing using own private key
-    # signature = rsa.sign(message.encode('ascii'), key, 'SHA-1')
+    signature = rsa.sign(message.encode('ascii'), private, 'SHA-1')
 
     client__Socket.send(json.dumps(data).encode())
 
@@ -134,7 +146,6 @@ def sending_handler():
 
 # start the interaction between client and server
 def interact():
-
     recieved_thread = threading.Thread(name="RecievingHandler", target=reciever_handler)
     recieved_thread.daemon = True
     recieved_thread.start()
@@ -157,5 +168,3 @@ signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 if __name__ == "__main__":
     # start to verify user
     interact()
-
-

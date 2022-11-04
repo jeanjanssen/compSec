@@ -7,6 +7,7 @@ from socket import *
 from typing import Dict
 from userhandler import userhandler
 from datetime import datetime
+import rsa
 
 HEADER = 64
 serverPort = 5053
@@ -38,22 +39,8 @@ user_manager = userhandler(block_duration, timeout)
 
 # TODO Generate keys (code found online, but could be shortened as we probably do not need to store the keys)
 # TODO when connection is established, send public key and receive client's private key
-'''
-def generateKeys():
-    (publicKey, privateKey) = rsa.newkeys(1024)
-    with open('keys/publcKey.pem', 'wb') as p:
-        p.write(publicKey.save_pkcs1('PEM'))
-     with open('keys/privateKey.pem', 'wb') as p:
-        p.write(privateKey.save_pkcs1('PEM'))
-
-def loadKeys():
-    with open('keys/publicKey.pem', 'rb') as p:
-        publicKey = rsa.PublicKey.load_pkcs1(p.read())
-    with open('keys/privateKey.pem', 'rb') as p:
-        privateKey = rsa.PrivateKey.load_pkcs1(p.read())
-    return privateKey, publicKey
-'''
-
+#getpbk = client.recv(2048)
+#server_public_key = rsa.importKey(getpbk)
 def keyboard_interrupt_handler(signal, frame):
     print("\r[SHUTTING OFF] server has shut down...")
     exit(0)
