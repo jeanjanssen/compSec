@@ -54,6 +54,7 @@ def write_log(data, id, value):
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
     f = open('log.txt', 'a')
+    id = repr(id)
     if data[0] == "INCREASE" or data[0] == "DECREASE":
         f.write(dt_string + " - " + id + " - " + data[0] + " " + str(data[1]) + " - VAL = " + str(value) + "\n")
     else:

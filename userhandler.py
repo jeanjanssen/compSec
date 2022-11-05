@@ -42,6 +42,7 @@ class userhandler:
              exit(1)
 
     def read_file(self):
+        open('logins.txt', 'w').close()
         try:
             with open("logins.txt", "r") as credential_file:
                 for credential in credential_file:

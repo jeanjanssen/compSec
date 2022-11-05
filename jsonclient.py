@@ -1,22 +1,83 @@
-import hashlib
 import json
-import atexit
 import threading
 import time
-import sys
 import signal
-import readline
+import ipaddress
 from socket import *
+from schema import Schema, Use, SchemaError
+
+SCHEMA = Schema({
+    'id': str,
+    'password': str,
+    'server': {
+        'ip': str,
+        'port': Use(int),
+    },
+    'actions': {
+        'delay': Use(int),
+        'steps': list
+    }
+})
+
+def validate(f):
+    try:
+        data = json.load(f)
+    except:
+        print("[ERROR] invalid .json formatting")
+        return False
+    try:
+        SCHEMA.validate(data)
+    except:
+        print("[ERROR] invalid .json formatting")
+        return False
+    if not data['server']['ip'] == 'localhost':
+        try:
+            ipaddress.ip_address(data['server']['ip'])
+        except:
+            print("[ERROR] invalid ip address")
+            return False
+    if not (1 <= int(data['server']['port']) <= 65535):
+        print("[ERROR] invalid port.")
+        return False
+    if int(data['actions']["delay"]) < 1:
+        print("[ERROR] delay should not be less than 1 and must be integer.")
+        return False
+    if len(data['id']) > 1024:
+        print("[ERROR] id should not be longer than 1024 characters")
+        return False
+    if len(data['password']) > 1024:
+        print("[ERROR] password should not be longer than 1024 characters")
+        return False
+    
+    for step in data['actions']['steps']:
+        try: 
+            action, value = step.split()
+            if not int(value) >= 1:
+                print("[ERROR] problem reading step: \"" + step + "\"")
+                print("[ERROR] value must be an integer >= 1")
+                return False
+            if not (action == 'INCREASE' or action == "DECREASE"):
+                print("[ERROR] problem reading step: \"" + step + "\"")
+                print("[ERROR] action must be \'INCREASE\' or \'DECREASE\'")
+                return False
+        except:
+            print("[ERROR] problem reading step: \"" + step + "\"")
+            return False
+
+    return True
 
 f = None
+data = None
 while f == None:
     try:
         fname = input("Please provide the filename of the .json file for this client: ")
         f = open(fname)
+        if not validate(f):
+            f = None
     except:
-        print("[ERROR] Could not read json file. Make sure it is valid.")
+        print("[ERROR] Make sure the provided filename is correct.")
 
-
+f = open(fname)
 data = json.load(f)
 
 HEADER = 64
@@ -53,12 +114,6 @@ message = json.dumps({
 
 actions = data['actions']
 
-try:
-    if int(actions["delay"]) < 1:
-        sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
-except:
-    sys.exit("[ERROR] delay is not integer >= 1. Aborting...")
-
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
 
@@ -73,14 +128,6 @@ def logout():
         }).encode())
         client__Socket.close()
 
-
-# print without breaking input thread
-def safe_printer(*args):
-    sys.stdout.write('\r' + ' ' * (len(readline.get_line_buffer()) + 2) + '\r')
-    print(*args)
-    sys.stdout.write('> ' + readline.get_line_buffer())
-    sys.stdout.flush()
-
 # handlesincoming
 def reciever_handler():
     global to_exit, is_timeout
@@ -91,9 +138,6 @@ def reciever_handler():
             # client timed out by the server
             to_exit = True
             is_timeout = True
-        else:
-            # unexpected format
-            safe_printer(data)
 
 
 # handles all outgoing data
