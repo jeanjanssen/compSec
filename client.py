@@ -70,8 +70,7 @@ def validate(f):
 
     return True
 
-f = "0"
-fname = "client1.json"
+f = None
 data = None
 while f == None:
     try:
