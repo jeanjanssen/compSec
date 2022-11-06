@@ -1,4 +1,0 @@
-06-11-2022 16:14:17 - 'user' - INCREASE 1 - VAL = 1
-06-11-2022 16:14:18 - 'user' - INCREASE 1 - VAL = 2
-06-11-2022 16:14:19 - 'user' - DECREASE 1 - VAL = 1
-06-11-2022 16:14:20 - 'user' - LOGOUT - VAL = N/A

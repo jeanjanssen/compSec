@@ -1,9 +1,13 @@
+import base64
 import json
+import os
 import threading
 import time
 import signal
 import ipaddress
 from socket import *
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from schema import Schema, Use, SchemaError
 from key_exchange import Diffie__Hellman
 from cryptography.fernet import Fernet
@@ -220,9 +224,16 @@ if __name__ == "__main__":
     client__Socket.connect((server_name, server_port))
 
     sendName()
-
+    salt = os.urandom(16)
     exchangeKeys()
-    crypt = Fernet(client_pvt_key)
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=390000,
+    )
+    client_pvt_key_byte = str(client_pvt_key)
+    crypt = Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(client_pvt_key_byte, "utf-8"))))
 
     interact()
 

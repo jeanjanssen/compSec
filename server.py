@@ -8,7 +8,7 @@ from typing import Dict
 from userhandler import userhandler
 from datetime import datetime
 from key_exchange import Diffie__Hellman
-
+from cryptography.fernet import Fernet
 HEADER = 1024
 serverPort = 5053
 block_duration = 10
@@ -180,7 +180,7 @@ def recv_handler():
         # exchange keys client
         askName(connection_socket)
         exchangeKeys(connection_socket)
-        crypt
+
 
         # create a new thread for the client socket
         socket_thread = threading.Thread(name=str(client_address), target=socket_handler)

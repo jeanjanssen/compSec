@@ -70,5 +70,6 @@ class Diffie__Hellman:
         if self.checking__public_keys(pub_key):
             self.shared_key = pow(pub_key, self.private, self.primes)
             return hashlib.sha256(str(self.shared_key).encode()).hexdigest()
+            #return self.shared_key
         else:
             raise Exception("INVALID PUBLIC KEY")
