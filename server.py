@@ -9,6 +9,11 @@ from userhandler import userhandler
 from datetime import datetime
 from key_exchange import Diffie__Hellman
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
+
+
 HEADER = 1024
 serverPort = 5053
 block_duration = 10
