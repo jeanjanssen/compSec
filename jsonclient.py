@@ -5,7 +5,7 @@ import signal
 import ipaddress
 from socket import *
 from schema import Schema, Use, SchemaError
-
+from key_exchange import Diffie__Hellman
 SCHEMA = Schema({
     'id': str,
     'password': str,
@@ -70,7 +70,8 @@ def validate(f):
 
     return True
 
-f = None
+f = "0"
+fname = "client1.json"
 data = None
 while f == None:
     try:
@@ -84,7 +85,7 @@ while f == None:
 f = open(fname)
 data = json.load(f)
 
-HEADER = 64
+HEADER = 1024
 server_port = int(data['server']['port'])
 
 server_name = data['server']['ip']
@@ -92,12 +93,16 @@ ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
-# connect to the server
-client__Socket = socket(AF_INET, SOCK_STREAM)
-client__Socket.connect((server_name, server_port))
-
-# get the thread
+ #get the thread
 thread_lock = threading.Condition()
+
+
+
+client_key=Diffie__Hellman()
+
+client_pub_key=str(client_key.generate_public_KEY())
+client_pvt_key=None
+
 
 # if set true, main thread will exit at next 0.1 second
 to_exit = False
@@ -107,6 +112,7 @@ is_timeout = False
 
 # get the username and password and login
 username = data['id']
+
 # username may be overwritten
 USERNAME = username
 message = json.dumps({
@@ -118,8 +124,11 @@ message = json.dumps({
 
 actions = data['actions']
 
+
+
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
+
 
 # logout handler
 def logout():
@@ -133,11 +142,33 @@ def logout():
         client__Socket.close()
 
 # handlesincoming
+def sendName():
+# sending name of the client
+    client__Socket.send(username.encode(FORMAT))
+  #  print(username)
+
+
+def exchangeKeys():
+    # exchanging keys
+    # getting public key of server
+    server_pub_key = int(client__Socket.recv(HEADER).decode(FORMAT))
+   # print("exchange client 1 : ", server_pub_key)
+    # generating pvt key
+    client_pvt_key = client_key.genenate_shared_KEY(server_pub_key)
+  #  print("exchange client 2 : ", client_pvt_key)
+    # sending public key of client
+    client__Socket.send(client_pub_key.encode(FORMAT))
+ #   print("exchange client 3 : ", client_pub_key.encode(FORMAT))
+
+
+
+
 def reciever_handler():
     global to_exit, is_timeout
     while True:
         login_result = client__Socket.recv(1024)
         data = json.loads(login_result.decode())
+        print( "recieved data :" , data)
         if data['action'] == 'timeout':
             # client timed out by the server
             to_exit = True
@@ -179,6 +210,15 @@ signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 if __name__ == "__main__":
     # start to verify user
+
+    client__Socket = socket(AF_INET, SOCK_STREAM)
+    client__Socket.connect((server_name, server_port))
+
+    sendName()
+
+    exchangeKeys()
+
     interact()
+
 
 

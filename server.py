@@ -7,8 +7,9 @@ from socket import *
 from typing import Dict
 from userhandler import userhandler
 from datetime import datetime
+from key_exchange import Diffie__Hellman
 
-HEADER = 64
+HEADER = 1024
 serverPort = 5053
 block_duration = 10
 
@@ -19,7 +20,11 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 
 Server__Socket = socket(AF_INET, SOCK_STREAM)
 Server__Socket.bind(ADDR)
-
+server_key=Diffie__Hellman()
+server_pub_key=str(server_key.generate_public_KEY())
+print("server public key : " + server_pub_key)
+client_keys={}
+client_names={}
 thread_lock = threading.Condition()
 
 #  clients
@@ -35,6 +40,31 @@ UPDATE_INTERVAL = 1
 
 # user manager manages all the user data
 user_manager = userhandler(block_duration, timeout)
+
+
+def askName(client):
+
+    # get the name of the client and store it in the map
+    msg = client.recv(HEADER).decode(FORMAT)
+    client_names[client] = msg
+    #print("client name : "+ msg)
+
+
+def exchangeKeys(client):
+    # exchanging keys
+    # sending public key of server
+    client.send((server_pub_key).encode(FORMAT))
+  #  print("exchange server 1 : " , server_pub_key)
+    # receiving public key of client
+    client_pub_key = int(client.recv(HEADER).decode(FORMAT))
+   # print("exchange server 2 : ", client_pub_key)
+    # generating pvt key
+    client_pvt_key = server_key.genenate_shared_KEY(client_pub_key)
+   # print("exchange server 3 : ", client_pvt_key)
+    # storing the pvt key of server for that client
+    client_keys[client] = client_pvt_key
+  #  print("keys exhanged")
+
 
 def keyboard_interrupt_handler(signal, frame):
     print("\r[SHUTTING OFF] server has shut down...")
@@ -64,6 +94,12 @@ def connection_handler(connection_socket, client_address):
 
     def real_connection_handler():
         global logfile
+
+        client_pvt_key = client_keys[connection_socket]
+        client_name = client_names[connection_socket]
+        print(f"[{client_address[0]}]-{client_address[1]} - [{client_name}] - Connected")
+        print(f"Active Connections - {threading.active_count() - 1}")
+
         try:
             received_data = connection_socket.recv(1024)
         except:
@@ -115,6 +151,9 @@ def connection_handler(connection_socket, client_address):
                 user_manager.set_offline(user_manager.get_username(client_address))
                 user_manager.user_stripper(hashed_id, hashed_password)
                 user_manager.decrease_user_count(hashed_id)
+                del client_names[connection_socket]
+                del client_keys[connection_socket]
+
                 write_log(["LOGOUT"], id, "N/A")
         else:
             user_manager.decrease_user_count(hashed_id)
@@ -137,6 +176,9 @@ def recv_handler():
 
         # create a new function handler for the client
         socket_handler = connection_handler(connection_socket, client_address)
+        # exchange keys client
+        askName(connection_socket)
+        exchangeKeys(connection_socket)
 
         # create a new thread for the client socket
         socket_thread = threading.Thread(name=str(client_address), target=socket_handler)
