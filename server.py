@@ -98,7 +98,7 @@ def connection_handler(connection_socket, client_address):
         client_pvt_key = client_keys[connection_socket]
         client_name = client_names[connection_socket]
         print(f"[{client_address[0]}]-{client_address[1]} - [{client_name}] - Connected")
-        print(f"Active Connections - {threading.active_count() - 1}")
+
 
         try:
             received_data = connection_socket.recv(1024)
