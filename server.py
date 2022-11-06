@@ -62,7 +62,7 @@ def exchangeKeys(client):
     client_pvt_key = server_key.genenate_shared_KEY(client_pub_key)
    # print("exchange server 3 : ", client_pvt_key)
     # storing the pvt key of server for that client
-    client_keys[client] = client_pvt_key
+    client_keys[client] = Fernet(client_pvt_key)
   #  print("keys exhanged")
 
 
@@ -101,7 +101,8 @@ def connection_handler(connection_socket, client_address):
 
 
         try:
-            received_data = connection_socket.recv(1024)
+            received_data_enc = connection_socket.recv(1024)
+            received_data = client_pvt_key.decrypt(received_data_enc)
         except:
             exit(0)
 
@@ -179,6 +180,7 @@ def recv_handler():
         # exchange keys client
         askName(connection_socket)
         exchangeKeys(connection_socket)
+        crypt
 
         # create a new thread for the client socket
         socket_thread = threading.Thread(name=str(client_address), target=socket_handler)

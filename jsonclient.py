@@ -6,6 +6,8 @@ import ipaddress
 from socket import *
 from schema import Schema, Use, SchemaError
 from key_exchange import Diffie__Hellman
+from cryptography.fernet import Fernet
+
 SCHEMA = Schema({
     'id': str,
     'password': str,
@@ -136,9 +138,11 @@ def logout():
         print("\rYou are timed out.")
     else:
         print("\rYou are logged out.")
-        client__Socket.send(json.dumps({
+        #TODO add encryption
+        msg = crypt.encrypt(json.dumps({
             "action": "logout"
         }).encode())
+        client__Socket.send(msg)
         client__Socket.close()
 
 # handlesincoming
@@ -179,8 +183,10 @@ def reciever_handler():
 def sending_handler():
     global to_exit
     global actions
-    
-    client__Socket.send(json.dumps(data).encode())
+
+    #TODO encryption
+    msg = crypt.encrypt(json.dumps(data).encode())
+    client__Socket.send(msg)
 
     to_exit = True
     time.sleep(2)
@@ -217,6 +223,7 @@ if __name__ == "__main__":
     sendName()
 
     exchangeKeys()
+    crypt = Fernet(client_pvt_key)
 
     interact()
 
