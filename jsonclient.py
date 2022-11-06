@@ -39,8 +39,8 @@ def validate(f):
     if not (1 <= int(data['server']['port']) <= 65535):
         print("[ERROR] invalid port.")
         return False
-    if int(data['actions']["delay"]) < 1:
-        print("[ERROR] delay should not be less than 1 and must be integer.")
+    if int(data['actions']["delay"]) < 1 or int(data['actions']["delay"]) > 1000:
+        print("[ERROR] Invalid delay: 1 <= delay <= 1000 and must be integer.")
         return False
     if len(data['id']) > 1024:
         print("[ERROR] id should not be longer than 1024 characters")
@@ -51,6 +51,10 @@ def validate(f):
     
     for step in data['actions']['steps']:
         try: 
+            if len(step) > 1000:
+                print("[ERROR] problem reading step: \"" + step + "\"")
+                print("[ERROR] action string may not be greater than 1000 characters")
+                return False
             action, value = step.split()
             if not int(value) >= 1:
                 print("[ERROR] problem reading step: \"" + step + "\"")
