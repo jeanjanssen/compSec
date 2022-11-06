@@ -1,8 +1,10 @@
+import base64
 import hashlib
 import threading
 import time
 import json
 import signal
+import os
 from socket import *
 from typing import Dict
 from userhandler import userhandler
@@ -68,7 +70,9 @@ def exchangeKeys(client):
    # print("exchange server 3 : ", client_pvt_key)
     # storing the crypt obj of server for that client
     salt = os.urandom(16)
-    exchangeKeys()
+    print(salt)
+    print(type(salt))
+    client.send(salt)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -77,7 +81,8 @@ def exchangeKeys(client):
     )
     client_pvt_key_byte = str(client_pvt_key)
     client_keys[client] = Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(client_pvt_key_byte, "utf-8"))))
-  #  print("keys exhanged")
+
+   # print("keys exhanged")
 
 
 def keyboard_interrupt_handler(signal, frame):
@@ -119,7 +124,6 @@ def connection_handler(connection_socket, client_address):
             received_data = client_pvt_key.decrypt(received_data_enc)
         except:
             exit(0)
-
         received_data = received_data.decode()
         received_data = json.loads(received_data)
 

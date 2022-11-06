@@ -107,6 +107,7 @@ client_key=Diffie__Hellman()
 
 client_pub_key=str(client_key.generate_public_KEY())
 client_pvt_key=None
+server_salt=None
 
 
 # if set true, main thread will exit at next 0.1 second
@@ -161,12 +162,14 @@ def exchangeKeys():
     server_pub_key = int(client__Socket.recv(HEADER).decode(FORMAT))
    # print("exchange client 1 : ", server_pub_key)
     # generating pvt key
+    global client_pvt_key
     client_pvt_key = client_key.genenate_shared_KEY(server_pub_key)
   #  print("exchange client 2 : ", client_pvt_key)
     # sending public key of client
     client__Socket.send(client_pub_key.encode(FORMAT))
  #   print("exchange client 3 : ", client_pub_key.encode(FORMAT))
-
+    global server_salt
+    server_salt = client__Socket.recv(HEADER)
 
 
 
@@ -224,8 +227,9 @@ if __name__ == "__main__":
     client__Socket.connect((server_name, server_port))
 
     sendName()
-    salt = os.urandom(16)
+
     exchangeKeys()
+    salt = server_salt
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
