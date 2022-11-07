@@ -1,16 +1,17 @@
 import base64
+import ipaddress
 import json
-import os
+import signal
 import threading
 import time
-import signal
-import ipaddress
 from socket import *
+
+from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from schema import Schema, Use, SchemaError
+from schema import Schema, Use
+
 from key_exchange import Diffie__Hellman
-from cryptography.fernet import Fernet
 
 SCHEMA = Schema({
     'id': str,
@@ -24,6 +25,7 @@ SCHEMA = Schema({
         'steps': list
     }
 })
+
 
 def validate(f):
     try:
@@ -54,9 +56,9 @@ def validate(f):
     if len(data['password']) > 1024:
         print("[ERROR] password should not be longer than 1024 characters")
         return False
-    
+
     for step in data['actions']['steps']:
-        try: 
+        try:
             if len(step) > 1000:
                 print("[ERROR] problem reading step: \"" + step + "\"")
                 print("[ERROR] action string may not be greater than 1000 characters")
@@ -75,6 +77,7 @@ def validate(f):
             return False
 
     return True
+
 
 f = None
 data = None
@@ -98,17 +101,14 @@ ADDR = (server_name, server_port)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
- #get the thread
+# get the thread
 thread_lock = threading.Condition()
 
+client_key = Diffie__Hellman()
 
-
-client_key=Diffie__Hellman()
-
-client_pub_key=str(client_key.generate_public_KEY())
-client_pvt_key=None
-server_salt=None
-
+client_pub_key = str(client_key.generate_public_KEY())
+client_pvt_key = None
+server_salt = None
 
 # if set true, main thread will exit at next 0.1 second
 to_exit = False
@@ -131,7 +131,6 @@ message = json.dumps({
 actions = data['actions']
 
 
-
 def keyboard_interrupt_handler(signal, frame):
     exit(0)
 
@@ -142,35 +141,37 @@ def logout():
         print("\rYou are timed out.")
     else:
         print("\rYou are logged out.")
-        #TODO add encryption
+        # TODO add encryption
         msg = crypt.encrypt(json.dumps({
             "action": "logout"
         }).encode())
         client__Socket.send(msg)
         client__Socket.close()
 
+
 # handlesincoming
 def sendName():
-# sending name of the client
+    # sending name of the client
     client__Socket.send(username.encode(FORMAT))
-  #  print(username)
+
+
+#  print(username)
 
 
 def exchangeKeys():
     # exchanging keys
     # getting public key of server
     server_pub_key = int(client__Socket.recv(HEADER).decode(FORMAT))
-   # print("exchange client 1 : ", server_pub_key)
+    # print("exchange client 1 : ", server_pub_key)
     # generating pvt key
     global client_pvt_key
     client_pvt_key = client_key.genenate_shared_KEY(server_pub_key)
-  #  print("exchange client 2 : ", client_pvt_key)
+    #  print("exchange client 2 : ", client_pvt_key)
     # sending public key of client
     client__Socket.send(client_pub_key.encode(FORMAT))
- #   print("exchange client 3 : ", client_pub_key.encode(FORMAT))
+    #   print("exchange client 3 : ", client_pub_key.encode(FORMAT))
     global server_salt
     server_salt = client__Socket.recv(HEADER)
-
 
 
 def reciever_handler():
@@ -178,7 +179,7 @@ def reciever_handler():
     while True:
         login_result = client__Socket.recv(1024)
         data = json.loads(login_result.decode())
-        print( "recieved data :" , data)
+        print("recieved data :", data)
         if data['action'] == 'timeout':
             # client timed out by the server
             to_exit = True
@@ -190,7 +191,7 @@ def sending_handler():
     global to_exit
     global actions
 
-    #TODO encryption
+    # TODO encryption
     msg = crypt.encrypt(json.dumps(data).encode())
     client__Socket.send(msg)
 
@@ -200,7 +201,6 @@ def sending_handler():
 
 # start the interaction between client and server
 def interact():
-
     recieved_thread = threading.Thread(name="RecievingHandler", target=reciever_handler)
     recieved_thread.daemon = True
     recieved_thread.start()
@@ -240,6 +240,3 @@ if __name__ == "__main__":
     crypt = Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(client_pvt_key_byte, "utf-8"))))
 
     interact()
-
-
-

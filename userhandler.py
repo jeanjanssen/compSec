@@ -1,9 +1,8 @@
-from typing import Dict
 from time import time
+from typing import Dict
 
 
 class userhandler:
-
 
     def __init__(self, block_dur: int, time_out_dur: int):
         self.users_dict: Dict[str, userhandler.__User] = dict()
@@ -22,8 +21,8 @@ class userhandler:
 
             # Delete text and Write
             with open('logins.txt', 'w') as file:
-                #Delete
-                new_text = text.replace(username_input+" "+password_input+"\n", '')
+                # Delete
+                new_text = text.replace(username_input + " " + password_input + "\n", '')
                 # Write
                 file.write(new_text)
         except:
@@ -32,14 +31,14 @@ class userhandler:
 
     def add_file(self, username_input: str, password_input: str):
 
-            try:
-                with open("logins.txt", "a") as credential_file:
-                    new_acc = username_input + " " + password_input + "\n"
-                    credential_file.write(new_acc)
-                    self.read_file()
-            except:
-             print(" error adding logins.txt")
-             exit(1)
+        try:
+            with open("logins.txt", "a") as credential_file:
+                new_acc = username_input + " " + password_input + "\n"
+                credential_file.write(new_acc)
+                self.read_file()
+        except:
+            print(" error adding logins.txt")
+            exit(1)
 
     def read_file(self):
         open('logins.txt', 'w').close()
@@ -48,8 +47,8 @@ class userhandler:
                 for credential in credential_file:
                     username, password = credential.strip().split()
                     self.users_dict[username] = userhandler.__User(username, password,
-                                                                    self.blockduration,
-                                                                    self.time_out)
+                                                                   self.blockduration,
+                                                                   self.time_out)
         except:
             print("error reading logins.txt")
             exit(1)
@@ -59,7 +58,6 @@ class userhandler:
             return self.users_dict[self.get_username(client_address)]
         except:
             print("[ERROR] could not find user")
-        
 
     def new_user(self, username_input: str, password_input: str):
         print("[LOGGING IN USER]")
@@ -68,15 +66,14 @@ class userhandler:
             # username unknown
             self.add_file(username_input, password_input)
             self.users_dict[username_input] = userhandler.__User(username_input, password_input,
-                                                                    self.blockduration,
-                                                                    self.time_out)
+                                                                 self.blockduration,
+                                                                 self.time_out)
 
             return "SUCCESS"
         else:
             print("[VERIFYING THROUGH EXISTING USER]")
             status = self.verify(username_input, password_input)
         return status
-
 
     def verify(self, username_input: str, password_input: str):
         # verify user and update status
@@ -124,7 +121,6 @@ class userhandler:
 
     class __User:
 
-
         # manage username, password, online status, number of consecutive fail trials,
         # blocked timestamp
 
@@ -159,12 +155,11 @@ class userhandler:
             self.consecutive_fails = 0
             self.blocked_since = 0
 
-
         def is_online(self):
             return self.online
 
         def increaseBalance(self, int):
-            self.balance = self.balance +int
+            self.balance = self.balance + int
 
         def decreaseBalance(self, int):
             self.balance = self.balance - int
@@ -172,9 +167,9 @@ class userhandler:
         def authenticate(self, password_input: str):
             # authenticate, return the status of the updated user
 
-            #if self.online:
-              # user is already logged in
-               # return "ALREADY_LOGGED_IN"
+            # if self.online:
+            # user is already logged in
+            # return "ALREADY_LOGGED_IN"
 
             if self.blocked:
                 # user is blocked
