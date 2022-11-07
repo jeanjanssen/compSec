@@ -29,7 +29,7 @@ Server__Socket = socket(AF_INET, SOCK_STREAM)
 Server__Socket.bind(ADDR)
 server_key = Diffie__Hellman()
 server_pub_key = str(server_key.generate_public_KEY())
-print("server public key : " + server_pub_key)
+#print("server public key : " + server_pub_key)
 client_keys = {}
 client_names = {}
 thread_lock = threading.Condition()
@@ -69,8 +69,6 @@ def exchangeKeys(client):
 
     # storing the crypt obj of server for that client
     salt = os.urandom(16)
-    print(salt)
-    print(type(salt))
     client.send(salt)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
