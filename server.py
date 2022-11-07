@@ -60,13 +60,13 @@ def exchangeKeys(client):
     # exchanging keys
     # sending public key of server
     client.send((server_pub_key).encode(FORMAT))
-    #  print("exchange server 1 : " , server_pub_key)
+
     # receiving public key of client
     client_pub_key = int(client.recv(HEADER).decode(FORMAT))
-    # print("exchange server 2 : ", client_pub_key)
+
     # generating pvt key
     client_pvt_key = server_key.genenate_shared_KEY(client_pub_key)
-    # print("exchange server 3 : ", client_pvt_key)
+
     # storing the crypt obj of server for that client
     salt = os.urandom(16)
     print(salt)
@@ -82,10 +82,10 @@ def exchangeKeys(client):
     client_keys[client] = Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(client_pvt_key_byte, "utf-8"))))
 
 
-# print("keys exhanged")
 
 
-def keyboard_interrupt_handler(signal, frame):
+
+def keyboard_interrupt_handler():
     print("\r[SHUTTING OFF] server has shut down...")
     exit(0)
 

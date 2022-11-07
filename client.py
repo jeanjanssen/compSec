@@ -155,21 +155,21 @@ def sendName():
     client__Socket.send(username.encode(FORMAT))
 
 
-#  print(username)
+
 
 
 def exchangeKeys():
     # exchanging keys
     # getting public key of server
     server_pub_key = int(client__Socket.recv(HEADER).decode(FORMAT))
-    # print("exchange client 1 : ", server_pub_key)
+
     # generating pvt key
     global client_pvt_key
     client_pvt_key = client_key.genenate_shared_KEY(server_pub_key)
-    #  print("exchange client 2 : ", client_pvt_key)
+
     # sending public key of client
     client__Socket.send(client_pub_key.encode(FORMAT))
-    #   print("exchange client 3 : ", client_pub_key.encode(FORMAT))
+
     global server_salt
     server_salt = client__Socket.recv(HEADER)
 
@@ -191,7 +191,7 @@ def sending_handler():
     global to_exit
     global actions
 
-    # TODO encryption
+
     msg = crypt.encrypt(json.dumps(data).encode())
     client__Socket.send(msg)
 
