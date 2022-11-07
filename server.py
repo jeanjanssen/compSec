@@ -156,13 +156,13 @@ def connection_handler(connection_socket, client_address):
                 user = user_manager.get_user(client_address)
                 user.increaseBalance(value)
                 write_log([action, value], id, user.getBalance())
-                print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+                print("[UPDATE] balance of user \"" + id + "\" changed to: " + str(user.getBalance()))
 
             elif action == 'DECREASE':
                 user = user_manager.get_user(client_address)
                 user.decreaseBalance(value)
                 write_log([action, value], id, user.getBalance())
-                print("[UPDATE] user balance changed to: " + str(user.getBalance()))
+                print("[UPDATE] balance of user \"" + id + "\" changed to: " + str(user.getBalance()))
 
             time.sleep(delay)
 
